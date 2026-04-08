@@ -55,6 +55,20 @@
       </div>
     </div>
 
+    <!-- GAS URLs Settings List -->
+    <div class="admin-list-card" style="margin-top: 2rem; border: 2px solid rgba(76, 175, 80, 0.4);">
+      <h2>⚙️ ตั้งค่าลิ้งก์ไดรฟ์ (GAS URLs)</h2>
+      <p style="color: var(--text-secondary); margin-bottom: 1.5rem; font-size: 0.9rem;">ระบบจะสลับใช้ลิ้งก์ที่ยังไม่เต็มอัตโนมัติจากบนลงล่าง กรุณาใส่ลิ้งก์ Web App ที่ได้จาก Google ลงที่นี่</p>
+      
+      <form id="addGasUrlForm" style="display: flex; gap: 0.5rem; margin-bottom: 1.5rem; flex-wrap: wrap;">
+        <input type="url" id="newGasUrl" class="form-control" placeholder="ลิ้งก์ Web App..." required autocomplete="off" style="padding: 0.75rem; flex: 2; min-width: 200px;">
+        <input type="text" id="newGasNote" class="form-control" placeholder="อีเมลกันลืม (ใส่หรือไม่ก็ได้)" autocomplete="off" style="padding: 0.75rem; flex: 1; min-width: 150px;">
+        <button type="submit" class="submit-btn" style="margin-top: 0; width: auto; padding: 0.75rem 1.5rem; flex-shrink: 0;"><i class="fas fa-plus"></i> เพิ่ม</button>
+      </form>
+      
+      <div id="gasUrlsList" class="admin-list"></div>
+    </div>
+
     <!-- Management List -->
     <div class="admin-list-card" style="margin-top: 2rem;">
       <h2>Manage Collections</h2>
