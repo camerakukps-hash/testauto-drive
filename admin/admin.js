@@ -81,7 +81,7 @@ fetchCollections();
 
 // ====== ตั้งค่า Google Apps Script ======
 // นำ URL ที่ได้จาก Google Apps Script มาวางในเครื่องหมายคำพูดด้านล่าง
-const GAS_URL = "YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL"; 
+const GAS_URL = https://script.google.com/macros/s/AKfycbxXJYlJ-ycy0nXKV4JjAorFRVbvF2tJEDxn8xwIOItduv0MKpcOVnrkB79UgpKX2yBt/exec"; 
 
 form.addEventListener('submit', async (e) => {
     e.preventDefault();
