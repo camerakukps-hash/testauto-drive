@@ -58,7 +58,42 @@
     <!-- GAS URLs Settings List -->
     <div class="admin-list-card" style="margin-top: 2rem; border: 2px solid rgba(76, 175, 80, 0.4);">
       <h2>⚙️ ตั้งค่าลิ้งก์ไดรฟ์ (GAS URLs)</h2>
-      <p style="color: var(--text-secondary); margin-bottom: 1.5rem; font-size: 0.9rem;">ระบบจะสลับใช้ลิ้งก์ที่ยังไม่เต็มอัตโนมัติจากบนลงล่าง กรุณาใส่ลิ้งก์ Web App ที่ได้จาก Google ลงที่นี่</p>
+      <p style="color: var(--text-secondary); margin-bottom: 1.5rem; font-size: 0.9rem;">ระบบจะสลับใช้ลิ้งก์ที่ยังไม่เต็มอัตโนมัติจากบนลงล่าง กรุณาใส่ลิ้งก์ Web App ที่ได้จาก Google ลงที่นี่ function doPost(e) {
+  try {
+    var data = JSON.parse(e.postData.contents);
+    var folderName = data.folderName;
+
+    // ตั้งชื่อโฟลเดอร์แม่ หากยังไม่มีระบบจะสร้างให้ 
+    var MASTER_FOLDER_NAME = "PHOTO_AGEXT_GALLERY";
+    
+    var folders = DriveApp.getFoldersByName(MASTER_FOLDER_NAME);
+    var masterFolder;
+    if (folders.hasNext()) {
+      masterFolder = folders.next();
+    } else {
+      masterFolder = DriveApp.createFolder(MASTER_FOLDER_NAME);
+    }
+
+    // สร้างอัลบั้มย่อยด้านในโฟลเดอร์แม่
+    var newFolder = masterFolder.createFolder(folderName);
+    
+    // ตั้งค่าอัลบั้มใหม่ให้ทุกคนที่มีลิ้งก์สามารถ"ดู"รูปได้โดยตรง
+    newFolder.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+    
+    // ส่งลิ้งก์กลับไปให้หน้าเว็บเพื่อคลิกเข้าไปอัปโหลดไฟล์ต่อ
+    return ContentService.createTextOutput(JSON.stringify({ 
+      success: true, 
+      url: newFolder.getUrl()
+    })).setMimeType(ContentService.MimeType.JSON);
+
+  } catch (error) {
+    return ContentService.createTextOutput(JSON.stringify({ 
+      success: false, 
+      error: error.message 
+    })).setMimeType(ContentService.MimeType.JSON);
+  }
+}
+</p>
       
       <form id="addGasUrlForm" style="display: flex; gap: 0.5rem; margin-bottom: 1.5rem; flex-wrap: wrap;">
         <input type="url" id="newGasUrl" class="form-control" placeholder="ลิ้งก์ Web App..." required autocomplete="off" style="padding: 0.75rem; flex: 2; min-width: 200px;">
