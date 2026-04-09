@@ -146,7 +146,10 @@ function renderGasUrls() {
               </span>
             </div>
             
-            <button type="button" onclick="toggleGasUrl(${index})" class="submit-btn" style="padding: 0.5rem 1rem; margin: 0 0.5rem 0 1rem; width: auto; flex-shrink: 0; background: ${isActive ? '#f44336' : '#4CAF50'}; border-radius: 6px;" title="เปิด/ปิด การใช้งาน">
+            <button type="button" onclick="checkGasStorage(${index})" class="submit-btn" style="padding: 0.5rem 1rem; margin-right: 0.5rem; width: auto; flex-shrink: 0; background: var(--secondary-color); border-radius: 6px; color: var(--accent-color);" title="ตรวจสอบพื้นที่ว่างของไดรฟ์นี้">
+              <i class="fas fa-chart-pie"></i> สแกน
+            </button>
+            <button type="button" onclick="toggleGasUrl(${index})" class="submit-btn" style="padding: 0.5rem 1rem; margin: 0 0.5rem 0 0; width: auto; flex-shrink: 0; background: ${isActive ? '#f44336' : '#4CAF50'}; border-radius: 6px;" title="เปิด/ปิด การใช้งาน">
               <i class="fas ${isActive ? 'fa-pause' : 'fa-play'}"></i> ${isActive ? 'พักใช้งาน' : 'เปิดรับงาน'}
             </button>
             <button type="button" onclick="deleteGasUrl(${index})" class="delete-btn" style="padding: 0.5rem; flex-shrink: 0;" title="ลบลิ้งก์">
@@ -171,6 +174,80 @@ window.deleteGasUrl = async function(index) {
         gasUrlsList.innerHTML = '<p style="color:var(--text-secondary);"><i class="fas fa-spinner fa-spin"></i> กำลังลบและบันทึก...</p>';
         await saveCollections(collectionsTemp);
         renderGasUrls();
+    }
+};
+
+window.checkGasStorage = async function(index) {
+    const gasObj = GAS_URLS[index];
+    const url = gasObj.url;
+    
+    // ค้นหาแถว UI เพื่ออัปเดตสถานะ
+    const rows = gasUrlsList.querySelectorAll('.admin-list-item');
+    const targetRow = rows[index];
+    const infoDiv = targetRow.querySelector('.admin-item-info');
+    
+    // สร้าง span หากยังไม่มี
+    let statusSpan = infoDiv.querySelector('.storage-status');
+    if(!statusSpan) {
+        statusSpan = document.createElement('span');
+        statusSpan.className = 'storage-status';
+        statusSpan.style.display = 'inline-block';
+        statusSpan.style.marginTop = '6px';
+        statusSpan.style.padding = '4px 8px';
+        statusSpan.style.borderRadius = '4px';
+        statusSpan.style.fontSize = '0.85rem';
+        statusSpan.style.fontWeight = 'bold';
+        infoDiv.appendChild(statusSpan);
+    }
+    
+    if (!gasObj.active) {
+        statusSpan.style.backgroundColor = 'rgba(0,0,0,0.1)';
+        statusSpan.style.color = 'var(--text-secondary)';
+        statusSpan.innerHTML = '<i class="fas fa-exclamation-circle"></i> ลิ้งก์นี้ถูกพัก ไม่สามารถเช็คได้';
+        return;
+    }
+    
+    statusSpan.style.backgroundColor = 'rgba(255, 193, 7, 0.2)';
+    statusSpan.style.color = '#FFA000';
+    statusSpan.innerHTML = '<i class="fas fa-spinner fa-spin"></i> กำลังสแกนความจุไดรฟ์ Google...';
+    
+    try {
+        const payload = { action: "checkStatus" };
+        const response = await fetch(url, {
+            method: 'POST',
+            body: JSON.stringify(payload),
+            headers: {
+                "Content-Type": "text/plain;charset=utf-8"
+            }
+        });
+        
+        const result = await response.json();
+        
+        if (result.success && result.used !== undefined) {
+            const usedGB = (result.used / (1024*1024*1024)).toFixed(2);
+            const limitGB = (result.limit / (1024*1024*1024)).toFixed(2);
+            const percentage = ((result.used / result.limit) * 100).toFixed(1);
+            
+            if (percentage >= 90) {
+                 statusSpan.style.backgroundColor = 'rgba(244, 67, 54, 0.15)';
+                 statusSpan.style.color = '#F44336';
+                 statusSpan.innerHTML = `<i class="fas fa-exclamation-triangle"></i> พื้นที่ใกล้เต็ม! ${usedGB} GB / ${limitGB} GB (${percentage}%)`;
+            } else if (percentage >= 70) {
+                 statusSpan.style.backgroundColor = 'rgba(255, 152, 0, 0.15)';
+                 statusSpan.style.color = '#FF9800';
+                 statusSpan.innerHTML = `<i class="fas fa-exclamation-circle"></i> เริ่มเหลือน้อย: ${usedGB} GB / ${limitGB} GB (${percentage}%)`;
+            } else {
+                 statusSpan.style.backgroundColor = 'rgba(76, 175, 80, 0.15)';
+                 statusSpan.style.color = '#4CAF50';
+                 statusSpan.innerHTML = `<i class="fas fa-check-circle"></i> พื้นที่ว่าง: ${usedGB} GB / ${limitGB} GB (${percentage}%)`;
+            }
+        } else {
+            throw new Error("โค้ดฝั่งไดรฟ์ยังเป็นแบบเก่า (กรุณาไป Paste ทับแล้ว Deploy ใหม่ครับ)");
+        }
+    } catch(err) {
+        statusSpan.style.backgroundColor = 'rgba(244, 67, 54, 0.15)';
+        statusSpan.style.color = '#F44336';
+        statusSpan.innerHTML = `<i class="fas fa-times-circle"></i> เกิดข้อผิดพลาด: ${err.message}`;
     }
 };
 
